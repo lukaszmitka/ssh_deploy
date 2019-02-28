@@ -1,0 +1,13 @@
+{
+    "deployments": [
+        {
+            "host": "rosbot-office",
+            "user": "husarion",
+            "workspace_to_send": "/home/husarion/ws_to_deploy",
+            "dest_workspace": "/home/husarion/auto_deploy/",
+            "hex_file_location": "/home/husarion/hframewrok_projects/ROSbot_examples/ROSbot_driver/",
+            "hex_file": "myproject.hex",
+            "hex_file_dest": "/home/husarion/"
+        }
+    ]
+}

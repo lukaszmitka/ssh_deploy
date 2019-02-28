@@ -7,6 +7,7 @@ import socket
 import sys
 import tarfile
 import subprocess
+import json
 
 from ssh2.session import Session
 from datetime import datetime
@@ -159,26 +160,30 @@ def deployments_in_progress(deployments):
             in_progress = True
     return in_progress
 
+with open('deployments.json') as f:
+    data = json.load(f)
 
-host = "rosbot-office"
-user = "husarion"
-workspace_to_send = "/home/husarion/ws_to_deploy"
-dest_workspace = "/home/husarion/auto_deploy/"
-hex_file_location = "/home/husarion/hframewrok_projects/ROSbot_examples/ROSbot_driver/"
-hex_file = "myproject.hex"
-hex_file_dest = "/home/husarion/"
+deployment_jobs = []
+working_threads = []
+for dep in data['deployments']:
+    dp = DeploymentProcess(
+        dep['host'],
+        dep['user'],
+        dep['workspace_to_send'],
+        dep['dest_workspace'],
+        dep['hex_file'],
+        dep['hex_file_location'],
+        dep['hex_file_dest']
+    )
+    deployment_jobs.append(dp)
+    working_threads.append(threading.Thread(target=dp.make_deployment))
 
-deployment_one = DeploymentProcess(host, user, workspace_to_send,
-                                   dest_workspace, hex_file, hex_file_location, hex_file_dest)
-deployment_jobs = [deployment_one]
-
-workThread_deployment_one = threading.Thread(
-    target=deployment_one.make_deployment)
-workThread_deployment_one.start()
+for dj in working_threads:
+    dj.start()
 
 while deployments_in_progress(deployment_jobs):
     time.sleep(0.1)
-    print('\rSteps done %5d, Is faulty: %s  ' % (int(deployment_one.getStepsDone()),
-                                                 deployment_one.isDeploymentFaulty()), end="")
+    print('\rSteps done %5d, Is faulty: %s  ' % (int(deployment_jobs[0].getStepsDone()),
+                                                 deployment_jobs[0].isDeploymentFaulty()), end="")
 
 print('\r\nDone')
